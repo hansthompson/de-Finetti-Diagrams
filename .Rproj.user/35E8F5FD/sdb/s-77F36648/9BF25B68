@@ -1,0 +1,17 @@
+{
+    "contents" : "#install.packages(\"V:/WORK/Hans/hierfstat_0.04-14.zip\", repos = NULL, type = \"binary\")\nlibrary(hierfstat)\nlibrary(reshape2)\nlibrary(ggtern)\nlibrary(ggplot2)\nlibrary(dplyr)\n\nx <- seq(0, 1, by = 0.01)\naa <- x^2\nAA <- rev(x^2)\nAa <-  -(2 * (seq(-0.5, 0.5, by = 0.01)^2) ) + .5\nHWEline <-data.frame(AA, Aa, aa)\n\nfiles <- list.files(pattern = \".csv\")\ndat <- read.csv(files[1], skip = 15)\n\n\ndat <- dat %>% group_by(Assay, Final) %>% summarize( n  =  length(Final))\n\ndat <- dat %>% \n    filter(! Final %in% c(\"Invalid\", \"No Call\", \"NTC\")) \n\nchi_square <- c()\nfor(i in seq(levels(dat$Assay))) {\n    freqs <- dat[dat$Assay == levels(dat$Assay)[i],]\n    \n    Q <- ((freqs[freqs$Final == \"XX\",]$n * 2) + freqs[freqs$Final == \"YX\",]$n) /\n        (2 * sum(freqs$n))\n    \n    P <- 1 - Q \n    \n    expAA <- P^2 * sum(freqs$n)\n    expAa <- 2 * P * Q * sum(freqs$n)\n    expaa <- Q^2 * sum(freqs$n)\n    \n    \n    chi <-     ((freqs[freqs$Final == \"YY\",]$n - expAA)^2) / expAA  + \n        ((freqs[freqs$Final == \"YX\",]$n - expAa)^2) / expAa  + \n        ((freqs[freqs$Final == \"XX\",]$n - expaa)^2) / expaa   \n    \n    chi_square <- c(chi_square, chi)\n    \n}\n\ndat <- dat %>% \n    group_by(Assay) %>% \n    mutate(n_percent = n/sum(n))\ndat <- dcast(dat, Assay ~ Final)\ndat <- dat[complete.cases(dat),]\n\ncolors <- rgb(dat$XX, dat$YX, dat$YY)\ndat <- cbind(dat, colors)\n\ndat$XX =\n    \n    p <- ggtern() + tern_limits(1,1,1) + geom_path(data = HWEline, aes(x = AA, y = Aa, z = aa)) \np + geom_text(data = dat, aes(x = XX, y = YX, z = YY, label = Assay, colour = colors), size = 6) + \n    scale_colour_identity() +\n    theme(axis.title=element_text(colour=\"red\"))\n",
+    "created" : 1415218663484.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2505091158",
+    "id" : "9BF25B68",
+    "lastKnownWriteTime" : 1415405515,
+    "path" : "C:/Users/chthompson/Desktop/ternary plots/ternary.R",
+    "project_path" : "ternary.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
